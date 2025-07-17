@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Joan in Flames - Symbolic Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Exo+2:wght@300;400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle at center, #1a0d0d, #000000);
+            font-family: 'Exo 2', sans-serif;
+            overflow: hidden;
+            cursor: none;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff6b35, #f7931e);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 20px #ff6b35, 0 0 40px #f7931e;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .section-title {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #8b0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 107, 53, 0.5);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        
+        .section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .section-title:hover {
+            transform: scale(1.05);
+            text-shadow: 0 0 50px rgba(255, 107, 53, 0.8);
+        }
+        
+        #trial {
+            top: 10%;
+            left: 5%;
+        }
+        
+        #voices {
+            top: 15%;
+            right: 5%;
+        }
+        
+        #sword {
+            bottom: 20%;
+            left: 10%;
+        }
+        
+        #pyre {
+            bottom: 15%;
+            right: 10%;
+        }
+        
+        #mirror {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .activation-text {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: #ff6b35;
+            text-align: center;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .flame-text {
+            animation: flicker 0.5s infinite alternate;
+        }
+        
+        @keyframes flicker {
+            0% { text-shadow: 0 0 20px #ff6b35; }
+            100% { text-shadow: 0 0 30px #f7931e, 0 0 40px #ff6b35; }
+        }
+        
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 500;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a0d0d, #2d1f1f);
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: #ff6b35;
+            font-family: 'Cinzel', serif;
+            box-shadow: 0 0 50px rgba(255, 107, 53, 0.3);
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .modal-content p {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ff6b35;
+        }
+        
+        #audio-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 200;
+        }
+        
+        .audio-btn {
+            background: linear-gradient(45deg, #ff6b35, #8b0000);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Exo 2', sans-serif;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+        
+        .audio-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="cursor"></div>
+    
+    <div id="container">
+        <div id="audio-controls">
+            <button class="audio-btn" onclick="toggleAmbient()">🎵 Ambient</button>
+            <button class="audio-btn" onclick="playHeartbeat()">💓 Heartbeat</button>
+        </div>
+        
+        <div id="ui">
+            <div class="section-title" id="trial" onclick="openSection('trial')">
+                🕯️ The Eternal Trial
+            </div>
+            <div class="section-title" id="voices" onclick="openSection('voices')">
+                🌟 Chamber of Voices
+            </div>
+            <div class="section-title" id="sword" onclick="openSection('sword')">
+                🛡️ Sword of the Word
+            </div>
+            <div class="section-title" id="pyre" onclick="openSection('pyre')">
+                🔥 Transforming Pyre
+            </div>
+            <div class="section-title" id="mirror" onclick="openSection('mirror')">
+                👁️ Unsettling Mirror
+            </div>
+            
+            <div class="activation-text">
+                Move your soul... feel the inner flame awaken
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let scene, camera, renderer, orbs = [], flames = [], sword;
+        let audioContext, ambientSound, isAmbientPlaying = false;
+        let mouse = { x: 0, y: 0 };
+        let currentSection = null;
+        
+        // Joan's symbolic data
+        const joanData = {
+            trial: {
+                title: "The Eternal Trial",
+                content: `
+                    <h2>🕯️ The Tribunal of the Soul</h2>
+                    <p>"God sent me to liberate France..." - Joan, 1431</p>
+                    <p>Here where words burn and are reborn, where every truth spoken 
+                    challenges established dogmas. Fire does not destroy truth, it purifies it.</p>
+                    <p class="flame-text">The flames dance with every word that fear could not silence.</p>
+                    <p>You too have voices calling you. Do you hear them?</p>
+                `
+            },
+            voices: {
+                title: "Chamber of Voices",
+                content: `
+                    <h2>🌟 The Whispers of the Soul</h2>
+                    <p>"I hear Saint Michael, Saint Margaret..." - Joan</p>
+                    <p>In this chamber resonate the voices that guide those who dare 
+                    to listen beyond the noise of the world.</p>
+                    <p class="flame-text">Each orb contains a fragment of insurgent wisdom.</p>
+                    <p>Come closer... allow the ancestral voices to awaken your own inner voice.</p>
+                `
+            },
+            sword: {
+                title: "Sword of the Word",
+                content: `
+                    <h2>🛡️ The Blade that Cuts Through Lies</h2>
+                    <p>"My sword was found miraculously..." - Joan</p>
+                    <p>It is not metal that cuts, but the word sharpened by truth. 
+                    This sword symbolizes the power to speak what others silence.</p>
+                    <p class="flame-text">Every true word is a blow against oppression.</p>
+                    <p>Wield your own sword of truth. What mental structures do you need to tear down?</p>
+                `
+            },
+            pyre: {
+                title: "Transforming Pyre",
+                content: `
+                    <h2>🔥 The Fire that Liberates</h2>
+                    <p>"Jesus! Jesus!" - Joan's last words</p>
+                    <p>This fire does not consume, it transforms. Each flame is an idea liberated 
+                    from the chains of conformity.</p>
+                    <p class="flame-text">What burns here is reborn as pure wisdom.</p>
+                    <p>Throw your fears into the fire. Watch them become power.</p>
+                `
+            },
+            mirror: {
+                title: "Unsettling Mirror",
+                content: `
+                    <h2>👁️ The Reflection of the Insurgent Soul</h2>
+                    <p>"I am sent by God..." - Joan</p>
+                    <p>In this mirror you don't see your face, but your rebellious essence. 
+                    The divine spark that burns within you, waiting to be freed.</p>
+                    <p class="flame-text">You are stronger than they have made you believe.</p>
+                    <p>See yourself as Joan saw herself: as an instrument of divine truth.</p>
+                `
+            }
+        };
+        
+        // Initialization
+        function init() {
+            setupScene();
+            createOrbs();
+            createFlames();
+            createSword();
+            setupEventListeners();
+            animate();
+            showSections();
+        }
+        
+        function setupScene() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            camera.position.z = 5;
+            
+            // Ambient lighting
+            const ambientLight = new THREE.AmbientLight(0xff6b35, 0.3);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0xf7931e, 1, 100);
+            pointLight.position.set(0, 0, 5);
+            scene.add(pointLight);
+        }
+        
+        function createOrbs() {
+            const orbGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            
+            for (let i = 0; i < 12; i++) {
+                const orbMaterial = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0.08 + Math.random() * 0.1, 0.8, 0.6),
+                    transparent: true,
+                    opacity: 0.7
+                });
+                
+                const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+                orb.position.set(
+                    (Math.random() - 0.5) * 8,
+                    (Math.random() - 0.5) * 6,
+                    (Math.random() - 0.5) * 4
+                );
+                
+                orb.userData = {
+                    originalColor: orbMaterial.color.clone(),
+                    speed: Math.random() * 0.02 + 0.01,
+                    phase: Math.random() * Math.PI * 2
+                };
+                
+                scene.add(orb);
+                orbs.push(orb);
+            }
+        }
+        
+        function createFlames() {
+            const flameGeometry = new THREE.ConeGeometry(0.05, 0.3, 8);
+            
+            for (let i = 0; i < 20; i++) {
+                const flameMaterial = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0.08, 1, 0.5 + Math.random() * 0.3),
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const flame = new THREE.Mesh(flameGeometry, flameMaterial);
+                flame.position.set(
+                    (Math.random() - 0.5) * 10,
+                    -3 + Math.random() * 2,
+                    (Math.random() - 0.5) * 5
+                );
+                
+                flame.userData = {
+                    speed: Math.random() * 0.03 + 0.02,
+                    amplitude: Math.random() * 0.5 + 0.2
+                };
+                
+                scene.add(flame);
+                flames.push(flame);
+            }
+        }
+        
+        function createSword() {
+            const group = new THREE.Group();
+            
+            // Blade
+            const bladeGeometry = new THREE.BoxGeometry(0.05, 1.5, 0.02);
+            const bladeMaterial = new THREE.MeshBasicMaterial({
+                color: 0xc0c0c0,
+                transparent: true,
+                opacity: 0.9
+            });
+            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+            
+            // Hilt
+            const hiltGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.05);
+            const hiltMaterial = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
+            const hilt = new THREE.Mesh(hiltGeometry, hiltMaterial);
+            hilt.position.y = -0.8;
+            
+            group.add(blade);
+            group.add(hilt);
+            group.position.set(-2, 0, 1);
+            group.rotation.z = Math.PI / 6;
+            
+            scene.add(group);
+            sword = group;
+        }
+        
+        function setupEventListeners() {
+            document.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('resize', onWindowResize);
+            
+            // Custom cursor
+            document.addEventListener('mousemove', (e) => {
+                const cursor = document.getElementById('cursor');
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+        }
+        
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            // Animate orbs
+            orbs.forEach((orb, i) => {
+                const userData = orb.userData;
+                orb.position.y += Math.sin(time + userData.phase) * userData.speed;
+                orb.rotation.y += userData.speed;
+                
+                // Breathing effect
+                const scale = 1 + Math.sin(time * 2 + i) * 0.1;
+                orb.scale.setScalar(scale);
+                
+                // Smooth color change
+                const hue = 0.08 + Math.sin(time + i) * 0.05;
+                orb.material.color.setHSL(hue, 0.8, 0.6);
+            });
+            
+            // Animate flames
+            flames.forEach((flame, i) => {
+                flame.position.y += Math.sin(time * 3 + i) * flame.userData.speed;
+                flame.rotation.z += flame.userData.speed;
+                flame.scale.y = 1 + Math.sin(time * 4 + i) * flame.userData.amplitude;
+            });
+            
+            // Animate sword
+            if (sword) {
+                sword.rotation.z = Math.PI / 6 + Math.sin(time) * 0.1;
+                sword.position.y = Math.sin(time * 0.5) * 0.2;
+            }
+            
+            // Move camera subtly
+            camera.position.x = Math.sin(time * 0.3) * 0.5;
+            camera.position.y = Math.cos(time * 0.2) * 0.3;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        function showSections() {
+            setTimeout(() => {
+                document.querySelectorAll('.section-title').forEach((el, i) => {
+                    setTimeout(() => {
+                        el.classList.add('visible');
+                    }, i * 300);
+                });
+            }, 1000);
+        }
+        
+        function openSection(section) {
+            currentSection = section;
+            const data = joanData[section];
+            document.getElementById('modal-body').innerHTML = data.content;
+            document.getElementById('modal').style.display = 'flex';
+            
+            // Sound effect
+            playTone(432, 0.3, 'sawtooth');
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            currentSection = null;
+        }
+        
+        function toggleAmbient() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            if (isAmbientPlaying) {
+                if (ambientSound) {
+                    ambientSound.stop();
+                }
+                isAmbientPlaying = false;
+            } else {
+                playAmbientSound();
+                isAmbientPlaying = true;
+            }
+        }
+        
+        function playAmbientSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(963, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 2);
+            
+            oscillator.start();
+            ambientSound = oscillator;
+        }
+        
+        function playHeartbeat() {
+            playTone(60, 0.2, 'square');
+            setTimeout(() => playTone(65, 0.2, 'square'), 200);
+        }
+        
+        function playTone(frequency, duration, type = 'sine') {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+        
+        // Close modal with Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && currentSection) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
